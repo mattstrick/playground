@@ -1,0 +1,20 @@
+{
+  "name": "playground-shows",
+  "version": "1.0.0",
+  "description": "grab shows for the next week",
+  "main": "getDates.js",
+  "dependencies": {
+    "cheerio": "^1.0.0-rc.2",
+    "csv-parse": "^1.2.0",
+    "moment": "^2.18.1",
+    "request": "^2.81.0",
+    "should": "^11.2.1",
+    "tunnel": "^0.0.5"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "matt",
+  "license": "ISC"
+}
