@@ -1,4 +1,4 @@
-const request = require('request');
+const request = require('request-promise-native');
 const cheerio = require('cheerio');
 const time = require("./time.js");
 
@@ -19,40 +19,43 @@ var PlaygroundCalendar = function() {
         return url;
     };
 
-    this.displayToday = function () {
+    this.displayToday = function (cal) {
         console.log('GETTING TODAY\'S SHOWS')
     
-        getScheduleByDay(Time.convertMomentToDay(Time.getToday()));  
+        getScheduleByDay(cal, Time.convertMomentToDay(Time.getToday()));  
         displaySectionBreak();  
     };
 
-    this.displayWeek = function () {
-        var week = Time.getThisWeek();
+    this.displayWeek = function (cal) {
+        let week = Time.getThisWeek();
         for (day in week) {
-            getScheduleByDay(week[day]);
+            getScheduleByDay(cal, week[day]);
         }
         displaySectionBreak();
     };
 
     this.getCalendar = function (month, year) {
-        return request(getXHRParams(month, year), 
-            function(err, res, body) {  
-                if (err) { return console.log("ERROR",err) };
-
-                calendar = cheerio.load(res.body);
-                displayToday();
-                getPerformingTeamsByDay(Time.convertMomentToDay(Time.getToday()));
-                displaySectionBreak();
-                displayWeek();
-                getPerformingTeamsByWeek();
-
+        let params = getXHRParams(month, year);
+        
+        return request(params.url)
+        .then(
+            function(res) { 
+                // console.log(res); 
+                calendar = cheerio.load(res);
+                
                 return calendar;
+            }
+        )
+        .catch(
+            function(err) {  
+                console.log("ERROR",err);
+                return err;
             }
         );
     }
 
     function getPerformingTeamsByWeek() {
-        var week = Time.getThisWeek();
+        let week = Time.getThisWeek();
 
         for (day in week) {
             getPerformingTeamsByDay(week[day]);
@@ -60,12 +63,12 @@ var PlaygroundCalendar = function() {
         displaySectionBreak();
     }
 
-    function getPerformingTeamsByDay(day) {
+    function getPerformingTeamsByDay(cal, day) {
         var dayObj;
         var teams;
 
         console.log('GETTING TEAMS FOR - ' + day);
-        dayObj = getScheduleByDay(day);
+        dayObj = getScheduleByDay(cal, day);
         teams = dayObj.find('.opening-teams');
 
         console.log('TEAMS GO HERE');
@@ -83,17 +86,17 @@ var PlaygroundCalendar = function() {
         return calendar(show).text() != '';
     }
 
-    function formatTeams (text) {
+    function formatTeams(text) {
         // return text.split('<br>');
         var lines = text.replace(/<br>/gi, ', ');
         console.log(lines);
     }
 
-    function getScheduleByDay(day) {
+    function getScheduleByDay(cal, day) {
         console.log('GETTING SHOWS FOR - ' + day);
     
-        var element = getElementForDay(day);
-        formatDay(element);
+        var element = getElementForDay(cal, day);
+        formatDay(cal, element);
         return element;
     };
 
@@ -101,18 +104,18 @@ var PlaygroundCalendar = function() {
         console.log('---------------------');
     }
 
-    function formatDay(element) {
+    function formatDay(cal, element) {
         var items = element.find('li');
         items.each(function (i, elem) {
-            console.log(calendar(this).text());
+            console.log(cal(this).text());
         });
     }
 
-    function getElementForDay(day) {
+    function getElementForDay(cal, day) {
         // http://theplaygroundtheater.com/2017-08-20/?limit
 
-        var dayElement = calendar('a[href="http://theplaygroundtheater.com/' + day + '/?limit"]').parent();
-        // // console.log(dayElement.html());
+        var dayElement = cal('a[href="http://theplaygroundtheater.com/' + day + '/?limit"]').parent();
+        // console.log(dayElement.html());
         return dayElement;
     };
 

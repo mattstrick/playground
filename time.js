@@ -79,9 +79,9 @@ var temp = Time();
 var _day = temp.getToday();
 var _string = temp.convertMomentToDay(_day);
 var _moment = temp.convertDayToMoment(_string);
-console.log(_day);
-console.log(_string);
-console.log(_moment);
+// console.log(_day);
+// console.log(_string);
+// console.log(_moment);
 // console.log(temp.getThisWeek());
 
 module.exports = Time;
